@@ -353,23 +353,26 @@ class DynamicFields
      * @param $allList
      * @return array
      */
-    public function getGlobalList($numPage = 1, $searchText = false, $allList = false) {
-		$numPage = intval($numPage);
-		$countElem = 10;
-		$lim = [];
-		$lim['start'] = intval(($numPage*$countElem)-$countElem);
-		$lim['sum'] = intval($countElem);
+    public function getGlobalList($numPage = 1, $searchText = false, $allList = false)
+    {
+        $numPage = intval($numPage);
+        $countElem = 10;
+        $lim = [];
+        $lim['start'] = intval(($numPage * $countElem) - $countElem);
+        $lim['sum'] = intval($countElem);
         $lang = \g::stack()->get('lang');
-		$queryLim = "LIMIT ".$lim['start']." , ".$lim['sum'];
+        $queryLim = "LIMIT " . $lim['start'] . " , " . $lim['sum'];
         $retArray = [];
-		$langList = [];
+        $langList = [];
         $query = NULL;
-		
-		if($allList){ $queryLim = ''; }
-		
-		if($searchText) {
-			if(\g::ml()->checkModule('Multilingual') && $lang != 'ru'){
-				$query = \g::db()->getAll("
+
+        if ($allList) {
+            $queryLim = '';
+        }
+
+        if ($searchText) {
+            if (\g::ml()->checkModule('Multilingual') && $lang != 'ru') {
+                $query = \g::db()->getAll("
 					SELECT 
 						name.id, 
 						name.name, 
@@ -390,37 +393,36 @@ class DynamicFields
 							lang.description LIKE '%$searchText%'
 						)
 					ORDER BY id DESC");
-			} else {
-				$query = \g::db()->getAll("SELECT * FROM {$this->tableName} WHERE name LIKE '%$searchText%' OR description LIKE '%$searchText%' ORDER BY id DESC");
-			}
-		}
-		else {
-			$query = \g::db()->getAll("SELECT * FROM {$this->tableName} ORDER BY id DESC $queryLim");
-		}
-		
-		// если есть язык не  РУ, то запросим по этому языку данные и вставим их в массивполей
-		if (\g::ml()->checkModule('Multilingual') && $lang != 'ru') {
-			$querylang = \g::db()->getAll("SELECT * FROM {$this->tableNameLang} WHERE lang = '$lang'");
-			
-			foreach ($querylang as $elem_lang) {
-				$langList[$elem_lang['id_tv']] = ['id' => $elem_lang['id'], 'desc' => $elem_lang['description']];
-			}
-		}
-		
-		
-		foreach ($query as $elem) {
-			if ($langList[$elem['id']]) {
-				$elem['description'] = $langList[$elem['id']]['desc'];
-				$elem['id_lang'] = $langList[$elem['id']]['id'];
-			}
-			
-			$retArray[] = [
-				'id' => $elem['id'],
-				'name' => $elem['name'],
-				'description' => stripslashes(htmlspecialchars_decode($elem['description'])),
-				'id_lang' => $elem['id_lang']
-			];
-		}
+            } else {
+                $query = \g::db()->getAll("SELECT * FROM {$this->tableName} WHERE name LIKE '%$searchText%' OR description LIKE '%$searchText%' ORDER BY id DESC");
+            }
+        } else {
+            $query = \g::db()->getAll("SELECT * FROM {$this->tableName} ORDER BY id DESC $queryLim");
+        }
+
+        // если есть язык не  РУ, то запросим по этому языку данные и вставим их в массивполей
+        if (\g::ml()->checkModule('Multilingual') && $lang != 'ru') {
+            $querylang = \g::db()->getAll("SELECT * FROM {$this->tableNameLang} WHERE lang = '$lang'");
+
+            foreach ($querylang as $elem_lang) {
+                $langList[$elem_lang['id_tv']] = ['id' => $elem_lang['id'], 'desc' => $elem_lang['description']];
+            }
+        }
+
+
+        foreach ($query as $elem) {
+            if ($langList[$elem['id']]) {
+                $elem['description'] = $langList[$elem['id']]['desc'];
+                $elem['id_lang'] = $langList[$elem['id']]['id'];
+            }
+
+            $retArray[] = [
+                'id' => $elem['id'],
+                'name' => $elem['name'],
+                'description' => stripslashes(htmlspecialchars_decode($elem['description'])),
+                'id_lang' => $elem['id_lang']
+            ];
+        }
 
         return $retArray;
     }
@@ -430,17 +432,18 @@ class DynamicFields
     /**
      * @return array
      */
-    public function getAllDynamicFields(){
-		$list = $this->getGlobalList(1,false,true);
+    public function getAllDynamicFields()
+    {
+        $list = $this->getGlobalList(1, false, true);
         $returnArray = [];
         foreach ($list as $elem) {
             $returnArray[$elem['name']] = $elem['description'];
         }
 
         return $returnArray;
-	} 
-	
-	// Вернёт список всех пагенируемых объектов onRenderTemplateEvent
+    }
+
+    // Вернёт список всех пагенируемых объектов onRenderTemplateEvent
 
     /**
      * @return array
@@ -461,24 +464,25 @@ class DynamicFields
     /**
      * @return true
      */
-    public function APIgetGlobalListAction(){
-		$page = \g::request()->post()->get("page");
-		$searchText = \g::request()->post()->get("searchText");
-		
-		$list = $this->getGlobalList($page,$searchText);
-		
-		$countTable = \g::db()->getOne("SELECT COUNT(*) FROM {$this->tableName}");
-		
-		\g::response()->data()->set([
-			'res' => true,
-			'list' => $list,
-			'count' => $countTable,
-		]);
-		
-		return true;
-	}
-	
-	// добавит новую переменную в бд
+    public function APIgetGlobalListAction()
+    {
+        $page = \g::request()->post()->get("page");
+        $searchText = \g::request()->post()->get("searchText");
+
+        $list = $this->getGlobalList($page, $searchText);
+
+        $countTable = \g::db()->getOne("SELECT COUNT(*) FROM {$this->tableName}");
+
+        \g::response()->data()->set([
+            'res' => true,
+            'list' => $list,
+            'count' => $countTable,
+        ]);
+
+        return true;
+    }
+
+    // добавит новую переменную в бд
 
     /**
      * @return true
@@ -538,7 +542,7 @@ class DynamicFields
         $id_lang = \g::request()->post()->get("id_lang");
         $description = \g::request()->post()->get("description");
 
-        if ($this->changeOneVariable($id,$id_lang,$description)) {
+        if ($this->changeOneVariable($id, $id_lang, $description)) {
             \g::response()->data()->set([
                 'res' => true,
                 'description' => $description,
@@ -552,28 +556,29 @@ class DynamicFields
         }
         return true;
     }
-	
-	// сохранить все "description" что пришли
+
+    // сохранить все "description" что пришли
 
     /**
      * @return true
      */
-    public function APISaveAllVariablesAction(){
-		$id_lang = \g::request()->post()->get("id_lang");
-		$description = \g::request()->post()->get("description");
+    public function APISaveAllVariablesAction()
+    {
+        $id_lang = \g::request()->post()->get("id_lang");
+        $description = \g::request()->post()->get("description");
 
-		foreach ($description as $key_id => $dataText) {
-			$this->changeOneVariable($key_id,$id_lang[$key_id],$dataText);
-		}
-		
-		\g::response()->data()->set([
-			'res' => true,
-			'description' => $description,
-			'id_lang' => $id_lang,
-			'_POST' => $_POST
-		]);
-		return true;
-	}
+        foreach ($description as $key_id => $dataText) {
+            $this->changeOneVariable($key_id, $id_lang[$key_id], $dataText);
+        }
+
+        \g::response()->data()->set([
+            'res' => true,
+            'description' => $description,
+            'id_lang' => $id_lang,
+            '_POST' => $_POST
+        ]);
+        return true;
+    }
 
     // удалит из бд переменную
 
@@ -598,8 +603,8 @@ class DynamicFields
 
         return true;
     }
-	
-	// Сохранить одно языковое поле 
+
+    // Сохранить одно языковое поле
 
     /**
      * @param $id
@@ -607,9 +612,10 @@ class DynamicFields
      * @param $description
      * @return bool
      */
-    private function changeOneVariable($id, $id_lang = 'none', $description = ''){
-		if ($id) {
-			// if($description) { $description = htmlspecialchars(trim($description)); }
+    private function changeOneVariable($id, $id_lang = 'none', $description = '')
+    {
+        if ($id) {
+            // if($description) { $description = htmlspecialchars(trim($description)); }
             $lang = \g::stack()->get('lang');
 
             if (\g::ml()->checkModule('Multilingual') && $lang != 'ru') {
@@ -617,23 +623,23 @@ class DynamicFields
                     $query = \g::db()->query("UPDATE {$this->tableNameLang} SET 
 						description = ?s  
 						WHERE id = '$id_lang'
-					",$description);
+					", $description);
                 } else {
                     $query = \g::db()->query("INSERT INTO {$this->tableNameLang} SET 
 						id_tv = '$id' , 
 						lang = '$lang' , 
 						description = ?s
-					",$description);
+					", $description);
                 }
             } else {
                 $query = \g::db()->query("UPDATE {$this->tableName} SET 
 					description = ?s  
 					WHERE id = '$id'
-				",$description);
+				", $description);
             }
-           return true;
+            return true;
         } else {
-			return false;
+            return false;
         }
-	}
+    }
 }
